@@ -1,0 +1,173 @@
+# waifuvault-node-api
+
+This contains the official API bindings for uploading, deleting and obtaining files
+with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API for interacting with the service
+
+## Installation
+
+```sh
+npm install waifuvault-node-api
+```
+
+## Usage
+
+This API contains 4 interactions:
+
+1. Upload
+2. Delete
+3. get file info
+4. get file
+
+The package is namespaced to `Waifuvault`, so to import it, simply:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+```
+
+### Upload File
+
+To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
+
+| Option         | Type                 | Description                                                                       | Required                            | Extra info                                    |
+|----------------|----------------------|-----------------------------------------------------------------------------------|-------------------------------------|-----------------------------------------------|
+| `file`         | `string` or `Buffer` | The file to upload. can be a string to the file on disk or a Buffer               | true only if `url` is not supplied  | If `url` is supplied, this prop can't be set  |
+| `url`          | `string`             | The URL to a file that exists on the internet                                     | true only if `file` is not supplied | If `file` is supplied, this prop can't be set |
+| `expires`      | `string`             | A string containing a number and a unit (1d = 1day)                               | false                               | Valid units are `m`, `h` and `d`              |
+| `hideFilename` | `boolean`            | If true, then the uploaded filename won't appear in the URL                       | false                               | Defaults to `false`                           |
+| `password`     | `string`             | If set, then the uploaded file will be encrypted                                  | false                               |                                               |
+| `filename`     | `string`             | Only used if `file` is set and is a `Buffer`, will set the filename of the buffer | false                               |                                               |
+
+Using a URL:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.uploadFile({
+    url: "https://waifuvault.moe/assets/custom/images/08.png"
+});
+console.log(resp.url); // the file download URL
+```
+
+Using a Buffer:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.uploadFile({
+    file: Buffer.from("someData"),
+    filename: "aCoolFile.jpg"
+});
+console.log(resp.url); // the file download URL
+```
+
+Using a a file path:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.uploadFile({
+    file: "./files/aCoolFile.jpg"
+});
+console.log(resp.url); // the file download URL
+```
+
+### File Info
+
+If you have a token from your upload. Then you can get file info. This results in the following info:
+
+* token
+* url
+* protected
+* retentionPeriod
+
+Use the `fileInfo` function. This function takes the following options as parameters:
+
+| Option      | Type      | Description                                                        | Required | Extra info        |
+|-------------|-----------|--------------------------------------------------------------------|----------|-------------------|
+| `token`     | `string`  | The token of the upload                                            | true     |                   |
+| `formatted` | `boolean` | If you want the `retentionPeriod` to be human-readable or an epoch | false    | defaults to false |
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const info = await Waifuvault.fileInfo("someToken");
+console.log(a.retentionPeriod); // 28407118974
+console.log(a.url); // the file download URL
+```
+
+Human-readable timestamp:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const info = await Waifuvault.fileInfo("someToken", true);
+console.log(a.retentionPeriod); // 328 days 18 hours 51 minutes 31 seconds
+```
+
+### File Info
+
+To delete a file, you must supply your token to the `deleteFile` function.
+
+This function takes the following options as parameters:
+
+| Option  | Type     | Description                              | Required | Extra info |
+|---------|----------|------------------------------------------|----------|------------|
+| `token` | `string` | The token of the file you wish to delete | true     |            |
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const succsess = await Waifuvault.deleteFile("someToken");
+console.log(succsess); // true or false
+```
+
+### Get File
+
+This lib also supports obtaining a file from the API as a Buffer by supplying either the token or the unique identifier
+of the file (epoch/filename).
+
+Use the `getFile` function. This function takes the following options an object:
+
+| Option     | Type     | Description                                                                                      | Required                           | Extra info                                               |
+|------------|----------|--------------------------------------------------------------------------------------------------|------------------------------------|----------------------------------------------------------|
+| `token`    | `string` | The token of the file you want to download                                                       | true only if `filename` is not set | if `filename` is set, then this can not be used          |
+| `filename` | `string` | The Unique identifier of the file, this is the epoch time stamp it was uploaded and the filename | true only if `token` is not set    | if `token` is set, then this can not be used             |
+| `password` | `string` | The password for the file if it is protected                                                     | false                              | Must be supplied if the file is uploaded with `password` |
+
+> **Important!** The Unique identifier filename is the epoch/filename only if the file uploaded did not have a hidden
+> filename, if it did, then it's just the epoch.
+> For example: `1710111505084/08.png` is the Unique identifier for a standard upload of a file called `08.png`, if this
+> was uploaded with hidden filename, then it would be `1710111505084.png`
+
+Obtain an encrypted file
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+// upload the file
+const resp = await Waifuvault.uploadFile({
+    url: "https://waifuvault.moe/assets/custom/images/08.png",
+    password: "epic"
+});
+
+// download the file
+const file = await Waifuvault.getFile({
+    password: "epic",
+    token: resp.token
+});
+
+console.log(file); // a Buffer
+```
+
+Obtain a file from Unique identifier
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+// download the file
+const file = await Waifuvault.getFile({
+    filename: "/1710111505084/08.png"
+});
+
+console.log(file); // a Buffer
+```

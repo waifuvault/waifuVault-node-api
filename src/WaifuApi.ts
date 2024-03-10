@@ -48,7 +48,7 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>): Promise<W
     const response = await fetch(
         getUrl({
             expires: options.expires,
-            hide_filename: options.hide_filename,
+            hide_filename: options.hideFilename,
             password: options.password,
         }),
         {

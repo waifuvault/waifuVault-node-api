@@ -12,7 +12,7 @@ type WaifuvaultPutOpts = {
     /**
      * if set to true, then your filename will not appear in the URL. if false, then it will appear in the URL. defaults to false
      */
-    hide_filename?: boolean;
+    hideFilename?: boolean;
 
     /**
      * Setting a password will encrypt the file
