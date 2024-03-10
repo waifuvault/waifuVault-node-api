@@ -1,0 +1,50 @@
+{
+  "name": "waifuvault-node-api",
+  "version": "1.0.0",
+  "description": "Official Node API for waifuvault.moe",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "include": [
+    "src/**/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint --fix .",
+    "prettier": "npx prettier ./src --check",
+    "prettier:fix": "npx prettier ./src --write",
+    "prepare": "husky install"
+  },
+  "keywords": [],
+  "author": "Victoria",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "eslint": "^8.57.0",
+    "prettier": "3.2.5",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^7.1.0",
+    "husky": "^9.0.11"
+  },
+  "homepage": "https://github.com/VictoriqueMoe/waifuVault-node-api",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VictoriqueMoe/waifuVault-node-api.git"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ]
+  },
+  "engines" : {
+    "node" : ">=18.0.0"
+  }
+}
