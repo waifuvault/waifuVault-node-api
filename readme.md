@@ -104,7 +104,7 @@ const info = await Waifuvault.fileInfo("someToken", true);
 console.log(a.retentionPeriod); // 328 days 18 hours 51 minutes 31 seconds
 ```
 
-### File Info
+### Delete File
 
 To delete a file, you must supply your token to the `deleteFile` function.
 
