@@ -24,6 +24,9 @@ The package is namespaced to `Waifuvault`, so to import it, simply:
 import Waifuvault from "waifuvault-node-api";
 ```
 
+Each function takes a optional `signal` from an abort controller as the last argument,
+you may use this to abort the requests
+
 ### Upload File<a id="upload-file"></a>
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:

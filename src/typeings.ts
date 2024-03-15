@@ -68,7 +68,7 @@ export type WaifuError = {
 /**
  * The response from the api for files and uploads
  */
-export type WaifuResponse<T extends string | number = string> = {
+export type WaifuResponse<T extends string | number = number> = {
     /**
      * The token for the uploaded file
      */
