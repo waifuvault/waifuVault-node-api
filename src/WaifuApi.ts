@@ -15,9 +15,10 @@ const url = "https://waifuvault.moe";
 /**
  * Upload a file to waifuvault given a file or a URL
  * @param {XOR<FileUpload, UrlUpload>} options
+ * @param {AbortSignal} signal an abort signal to use in the request
  * @returns {Promise<WaifuResponse>}
  */
-export async function uploadFile(options: XOR<FileUpload, UrlUpload>): Promise<WaifuResponse> {
+export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: AbortSignal): Promise<WaifuResponse> {
     async function createBlobFromFile(path: string): Promise<Blob> {
         const file = await fs.readFile(path);
         return new Blob([file]);
@@ -52,6 +53,7 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>): Promise<W
             password: options.password,
         }),
         {
+            signal,
             method: "PUT",
             body,
         },
@@ -63,35 +65,50 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>): Promise<W
 /**
  * Get the info foe a file
  * @param {string} token
- * @param {B} formatted - if true then `retentionPeriod` will be a human readable string of when the file expires. else it will be an epoch number
+ * @param {B} formatted - if true then `retentionPeriod` will be a human-readable string of when the file expires. else it will be an epoch number
+ * @param {AbortSignal} signal an abort signal to use in the request
  * @returns {Promise<B extends true ? WaifuResponse<string> : WaifuResponse<number>>}
  */
 export async function fileInfo<B extends boolean = true>(
     token: string,
     formatted?: B,
+    signal?: AbortSignal,
 ): Promise<B extends true ? WaifuResponse<string> : WaifuResponse<number>> {
     const url = getUrl({ formatted }, token);
-    const response = await fetch(url);
+    const response = await fetch(url, { signal });
     await checkError(response);
     return response.json();
 }
 
-export async function deleteFile(token: string): Promise<boolean> {
+/**
+ * Delete a file given the token
+ * @param {string} token the token of the file to delete
+ * @param {AbortSignal} signal the abort signal to use in the request
+ * @returns {Promise<boolean>}
+ */
+export async function deleteFile(token: string, signal?: AbortSignal): Promise<boolean> {
     const url = getUrl(undefined, token);
     const response = await fetch(url, {
         method: "DELETE",
+        signal,
     });
     await checkError(response);
     const responseText = await response.text();
     return responseText === "true";
 }
 
-export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>): Promise<Buffer> {
+/**
+ * Get a file from a given token or a unique identifier (epoch/file)
+ * @param {XOR<GetFileInfoToken, GetFileInfoFilename>} opts
+ * @param {AbortSignal} signal he abort signal to use in the request
+ * @returns {Promise<Buffer>}
+ */
+export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, signal?: AbortSignal): Promise<Buffer> {
     let fileUrl: string;
     if (opts.filename) {
         fileUrl = `${url}/f/${opts.filename}`;
     } else {
-        const fileInfoResp = await fileInfo(opts.token!);
+        const fileInfoResp = await fileInfo(opts.token!, undefined, signal);
         fileUrl = fileInfoResp.url;
     }
     const headers: Record<string, string> = {};
@@ -100,6 +117,7 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>):
     }
     const response = await fetch(fileUrl, {
         headers,
+        signal,
     });
     if (response.status === 403) {
         // consume the body, ignore it due to memory leak
