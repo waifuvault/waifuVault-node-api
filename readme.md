@@ -13,10 +13,10 @@ npm install waifuvault-node-api
 
 This API contains 4 interactions:
 
-1. Upload
-2. Delete
-3. get file info
-4. get file
+1. [Upload File](#upload-file)
+2. [Get File Info](#get-file-info)
+3. [Delete File](#delete-file)
+4. [Get File](#get-file)
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -24,7 +24,7 @@ The package is namespaced to `Waifuvault`, so to import it, simply:
 import Waifuvault from "waifuvault-node-api";
 ```
 
-### Upload File
+### Upload File<a id="upload-file"></a>
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
 
@@ -71,7 +71,7 @@ const resp = await Waifuvault.uploadFile({
 console.log(resp.url); // the file download URL
 ```
 
-### File Info
+### Get File Info<a id="get-file-info"></a>
 
 If you have a token from your upload. Then you can get file info. This results in the following info:
 
@@ -104,7 +104,7 @@ const info = await Waifuvault.fileInfo("someToken", true);
 console.log(a.retentionPeriod); // 328 days 18 hours 51 minutes 31 seconds
 ```
 
-### Delete File
+### Delete File<a id="delete-file"></a>
 
 To delete a file, you must supply your token to the `deleteFile` function.
 
@@ -121,7 +121,7 @@ const succsess = await Waifuvault.deleteFile("someToken");
 console.log(succsess); // true or false
 ```
 
-### Get File
+### Get File<a id="get-file"></a>
 
 This lib also supports obtaining a file from the API as a Buffer by supplying either the token or the unique identifier
 of the file (epoch/filename).
