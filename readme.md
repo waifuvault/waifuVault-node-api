@@ -123,7 +123,7 @@ This function takes the following options as parameters:
 import Waifuvault from "waifuvault-node-api";
 
 const succsess = await Waifuvault.deleteFile("someToken");
-console.log(succsess); // true or false
+console.log(succsess);
 ```
 
 ### Get File<a id="get-file"></a>
