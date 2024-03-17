@@ -1,6 +1,6 @@
 {
   "name": "waifuvault-node-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Official Node API for waifuvault.moe",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -33,10 +33,10 @@
     "typescript-eslint": "^7.1.0",
     "husky": "^9.0.11"
   },
-  "homepage": "https://github.com/VictoriqueMoe/waifuVault-node-api",
+  "homepage": "https://github.com/waifuvault/waifuVault-node-api",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VictoriqueMoe/waifuVault-node-api.git"
+    "url": "git+https://github.com/waifuvault/waifuVault-node-api.git"
   },
   "lint-staged": {
     "src/**/*.ts": [

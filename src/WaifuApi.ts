@@ -84,17 +84,19 @@ export async function fileInfo<B extends boolean = true>(
  * Delete a file given the token
  * @param {string} token the token of the file to delete
  * @param {AbortSignal} signal the abort signal to use in the request
- * @returns {Promise<boolean>}
+ * @returns {Promise<true | never>}
  */
-export async function deleteFile(token: string, signal?: AbortSignal): Promise<boolean> {
+export async function deleteFile(token: string, signal?: AbortSignal): Promise<true | never> {
     const url = getUrl(undefined, token);
     const response = await fetch(url, {
         method: "DELETE",
         signal,
     });
     await checkError(response);
-    const responseText = await response.text();
-    return responseText === "true";
+
+    // at this point, the response has to be `true`, so consume the response and throw it away
+    await response.text();
+    return true;
 }
 
 /**
