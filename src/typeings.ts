@@ -90,6 +90,13 @@ export type WaifuResponse<T extends string | number = number> = {
     retentionPeriod: T;
 };
 
+export type ModifyEntryPayload = {
+    password?: string;
+    previousPassword?: string;
+    customExpiry?: string;
+    hideFilename?: boolean;
+};
+
 type GetFileInfo = {
     /**
      * Password for this file
