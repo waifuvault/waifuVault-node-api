@@ -69,7 +69,7 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
  * @param {AbortSignal} signal an abort signal to use in the request
  * @returns {Promise<B extends true ? WaifuResponse<string> : WaifuResponse<number>>}
  */
-export async function fileInfo<B extends boolean = true>(
+export async function fileInfo<B extends boolean = false>(
     token: string,
     formatted?: B,
     signal?: AbortSignal,
