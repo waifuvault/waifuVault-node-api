@@ -90,10 +90,30 @@ export type WaifuResponse<T extends string | number = number> = {
     retentionPeriod: T;
 };
 
+/**
+ * A modify entry request to change aspects of the entry
+ */
 export type ModifyEntryPayload = {
+    /**
+     * The new password.
+     * if the file is not currently encrypted, then this will encrypt it with the new password if it is encrypted,
+     * then this will change the password (`previousPassword` will need to be set in this case)
+     */
     password?: string;
+
+    /**
+     * If changing a password, then this will need to be set
+     */
     previousPassword?: string;
+
+    /**
+     * same as `WaifuvaultPutOpts.expires`
+     */
     customExpiry?: string;
+
+    /**
+     * hide the filename. use the new URL in the response to get the new URL to use
+     */
     hideFilename?: boolean;
 };
 

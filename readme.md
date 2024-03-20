@@ -17,6 +17,7 @@ This API contains 4 interactions:
 2. [Get File Info](#get-file-info)
 3. [Delete File](#delete-file)
 4. [Get File](#get-file)
+5. [Modify Entry](#modify-entry)
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -117,7 +118,7 @@ This function takes the following options as parameters:
 |---------|----------|------------------------------------------|----------|------------|
 | `token` | `string` | The token of the file you wish to delete | true     |            |
 
-> **NOTE:** `deleteFile` will only ever either return `true` or throw an exception if the token is invalid 
+> **NOTE:** `deleteFile` will only ever either return `true` or throw an exception if the token is invalid
 
 ```ts
 import Waifuvault from "waifuvault-node-api";
@@ -175,4 +176,71 @@ const file = await Waifuvault.getFile({
 });
 
 console.log(file); // a Buffer
+```
+
+### Modify Entry<a id="modify-entry"></a>
+
+If you want to modify aspects of your entry such as password, removing password, decrypting the file, encrypting the
+file, changing the expiry, etc. you can use `modifyEntry` function
+
+Use the `modifyEntry` function. This function takes the following options an object and one as a parameter:
+
+| parameter | Type     | Description                              | Required |
+|-----------|----------|------------------------------------------|----------|
+| `token`   | `string` | The token of the file you want to modify | true     |
+
+Options:
+
+| Option             | Type      | Description                                                                                              | Required                                                           | Extra info                                                                             |
+|--------------------|-----------|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| `password`         | `string`  | The new password or the password you want to use to encrypt the file                                     | false                                                              |                                                                                        |
+| `previousPassword` | `string`  | If the file is currently protected or encrpyted and you want to change it, use this for the old password | true only if `password` is set and the file is currently protected | if the file is protected already and you want to change the password, this MUST be set |
+| `customExpiry`     | `string`  | a new custom expiry, see `expires` in `uploadFile`                                                       | false                                                              |                                                                                        |
+| `hideFilename`     | `boolean` | make the filename hidden                                                                                 | false                                                              | for the new URL, check the response URL prop                                           |
+
+Set a password on a non-encrypted file:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const foo = await Waifuvault.modifyEntry("token", {
+    password: "apple",
+});
+foo.protected; // true
+```
+Change a password:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const foo = await Waifuvault.modifyEntry("token", {
+    password: "newPass",
+    previousPassword: "apple",
+});
+
+foo.protected; // true
+```
+
+change expire:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+await Waifuvault.modifyEntry("token", {
+    customExpiry: "1d"
+});
+```
+
+
+decrypt a file and remove the password:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const foo = await Waifuvault.modifyEntry("token", {
+    password: "",
+    previousPassword: "apple",
+});
+
+foo.protected; // false
 ```

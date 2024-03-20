@@ -132,6 +132,12 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, 
     return Buffer.from(arrayBuffer);
 }
 
+/**
+ * modify an entry
+ * @param {string} token
+ * @param {ModifyEntryPayload} opts
+ * @returns {Promise<WaifuResponse>}
+ */
 export async function modifyEntry(token: string, opts: ModifyEntryPayload): Promise<WaifuResponse> {
     const url = getUrl(undefined, token);
     const response = await fetch(url, {
