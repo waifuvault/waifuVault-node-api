@@ -2,6 +2,7 @@ import type {
     FileUpload,
     GetFileInfoFilename,
     GetFileInfoToken,
+    ModifyEntryPayload,
     UrlUpload,
     WaifuError,
     WaifuResponse,
@@ -129,6 +130,25 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, 
     await checkError(response);
     const arrayBuffer = await response.arrayBuffer();
     return Buffer.from(arrayBuffer);
+}
+
+/**
+ * modify an entry
+ * @param {string} token
+ * @param {ModifyEntryPayload} opts
+ * @returns {Promise<WaifuResponse>}
+ */
+export async function modifyEntry(token: string, opts: ModifyEntryPayload): Promise<WaifuResponse> {
+    const url = getUrl(undefined, token);
+    const response = await fetch(url, {
+        body: JSON.stringify(opts),
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    await checkError(response);
+    return response.json();
 }
 
 async function checkError(response: Response): Promise<void> {
