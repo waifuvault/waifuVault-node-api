@@ -12,6 +12,7 @@
   ],
   "type": "module",
   "scripts": {
+    "tsc": "tsc",
     "build": "tsup",
     "start": "node --loader ts-node/esm src/index.ts",
     "lint": "npx eslint .",
