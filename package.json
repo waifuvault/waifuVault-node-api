@@ -12,13 +12,15 @@
   ],
   "type": "module",
   "scripts": {
+    "tsc": "tsc",
     "build": "tsup",
     "start": "node --loader ts-node/esm src/index.ts",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint --fix .",
     "prettier": "npx prettier ./src --check",
     "prettier:fix": "npx prettier ./src --write",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "Victoria",
@@ -26,12 +28,13 @@
   "devDependencies": {
     "@eslint/js": "^8.57.0",
     "eslint": "^8.57.0",
+    "husky": "^9.0.11",
     "prettier": "3.2.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3",
     "typescript-eslint": "^7.1.0",
-    "husky": "^9.0.11"
+    "vitest": "^1.4.0"
   },
   "homepage": "https://github.com/waifuvault/waifuVault-node-api",
   "repository": {
@@ -41,10 +44,11 @@
   "lint-staged": {
     "src/**/*.ts": [
       "eslint --cache --fix",
-      "prettier --write"
+      "prettier --write",
+      "vitest"
     ]
   },
-  "engines" : {
-    "node" : ">=18.0.0"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
