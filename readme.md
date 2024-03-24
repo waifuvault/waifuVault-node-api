@@ -1,5 +1,7 @@
 # waifuvault-node-api
 
+![tests](https://github.com/waifuvault/waifuVault-node-api/actions/workflows/main.yml/badge.svg)
+
 This contains the official API bindings for uploading, deleting and obtaining files
 with [waifuvault.moe](https://waifuvault.moe/). Contains a full up to date API for interacting with the service
 
