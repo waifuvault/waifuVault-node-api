@@ -3,14 +3,22 @@ import type { WaifuError, WaifuResponse } from "../../typeings.js";
 export const waifuResponseMock1: WaifuResponse = {
     url: "https://waifuvault.moe/f/1710111505084/08.png",
     token: "123-fake-street",
-    protected: false,
+    options: {
+        protected: false,
+        oneTimeDownload: false,
+        hideFilename: false,
+    },
     retentionPeriod: 1234,
 };
 
 export const waifuResponseMock2: WaifuResponse<string> = {
     url: "https://waifuvault.moe/f/1710111505084/08.png",
     token: "123-fake-street",
-    protected: true,
+    options: {
+        protected: true,
+        oneTimeDownload: false,
+        hideFilename: false,
+    },
     retentionPeriod: "1234",
 };
 

@@ -34,14 +34,15 @@ you may use this to abort the requests
 
 To Upload a file, use the `uploadFile` function. This function takes the following options as an object:
 
-| Option         | Type                 | Description                                                                       | Required                            | Extra info                                    |
-|----------------|----------------------|-----------------------------------------------------------------------------------|-------------------------------------|-----------------------------------------------|
-| `file`         | `string` or `Buffer` | The file to upload. can be a string to the file on disk or a Buffer               | true only if `url` is not supplied  | If `url` is supplied, this prop can't be set  |
-| `url`          | `string`             | The URL to a file that exists on the internet                                     | true only if `file` is not supplied | If `file` is supplied, this prop can't be set |
-| `expires`      | `string`             | A string containing a number and a unit (1d = 1day)                               | false                               | Valid units are `m`, `h` and `d`              |
-| `hideFilename` | `boolean`            | If true, then the uploaded filename won't appear in the URL                       | false                               | Defaults to `false`                           |
-| `password`     | `string`             | If set, then the uploaded file will be encrypted                                  | false                               |                                               |
-| `filename`     | `string`             | Only used if `file` is set and is a `Buffer`, will set the filename of the buffer | false                               |                                               |
+| Option            | Type                 | Description                                                                       | Required                            | Extra info                                    |
+|-------------------|----------------------|-----------------------------------------------------------------------------------|-------------------------------------|-----------------------------------------------|
+| `file`            | `string` or `Buffer` | The file to upload. can be a string to the file on disk or a Buffer               | true only if `url` is not supplied  | If `url` is supplied, this prop can't be set  |
+| `url`             | `string`             | The URL to a file that exists on the internet                                     | true only if `file` is not supplied | If `file` is supplied, this prop can't be set |
+| `expires`         | `string`             | A string containing a number and a unit (1d = 1day)                               | false                               | Valid units are `m`, `h` and `d`              |
+| `hideFilename`    | `boolean`            | If true, then the uploaded filename won't appear in the URL                       | false                               | Defaults to `false`                           |
+| `password`        | `string`             | If set, then the uploaded file will be encrypted                                  | false                               |                                               |
+| `filename`        | `string`             | Only used if `file` is set and is a `Buffer`, will set the filename of the buffer | false                               |                                               |
+| `oneTimeDownload` | `boolean`            | if supplied, the file will be deleted as soon as it is accessed                   | false                               |                                               |
 
 Using a URL:
 
@@ -210,6 +211,7 @@ const foo = await Waifuvault.modifyEntry("token", {
 });
 foo.protected; // true
 ```
+
 Change a password:
 
 ```ts
@@ -232,7 +234,6 @@ await Waifuvault.modifyEntry("token", {
     customExpiry: "1d"
 });
 ```
-
 
 decrypt a file and remove the password:
 
