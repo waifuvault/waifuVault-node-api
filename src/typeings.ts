@@ -18,6 +18,11 @@ type WaifuvaultPutOpts = {
      * Setting a password will encrypt the file
      */
     password?: string;
+
+    /**
+     * If this is true, then the file will be deleted as soon as it is accessed
+     */
+    oneTimeDownload?: boolean;
 };
 
 /**
@@ -65,6 +70,23 @@ export type WaifuError = {
     status: number;
 };
 
+export type WaifuResponseOptions = {
+    /**
+     * If the filename is hidden
+     */
+    hideFilename: boolean;
+
+    /**
+     * If this file will be deleted when it is accessed
+     */
+    oneTimeDownload: boolean;
+
+    /**
+     * if this file is protected-protected/encrypted
+     */
+    protected: boolean;
+};
+
 /**
  * The response from the api for files and uploads
  */
@@ -80,9 +102,9 @@ export type WaifuResponse<T extends string | number = number> = {
     url: string;
 
     /**
-     * if this file is protected-protected/encrypted
+     * The options for this upload
      */
-    protected: boolean;
+    options: WaifuResponseOptions;
 
     /**
      * a string or a number that represents when the file will expire, if called with `format` true, then this will be a string like "332 days 7 hours 18 minutes 8 seconds"

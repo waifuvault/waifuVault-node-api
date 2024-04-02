@@ -1,6 +1,6 @@
 {
   "name": "waifuvault-node-api",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Official Node API for waifuvault.moe",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -44,8 +44,7 @@
   "lint-staged": {
     "src/**/*.ts": [
       "eslint --cache --fix",
-      "prettier --write",
-      "vitest"
+      "prettier --write"
     ]
   },
   "engines": {

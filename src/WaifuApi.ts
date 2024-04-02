@@ -52,6 +52,7 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
             expires: options.expires,
             hide_filename: options.hideFilename,
             password: options.password,
+            one_time_download: options.oneTimeDownload,
         }),
         {
             signal,
