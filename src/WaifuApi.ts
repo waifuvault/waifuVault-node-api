@@ -10,6 +10,7 @@ import type {
 } from "./typeings.js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 
 const url = "https://waifuvault.moe";
 
@@ -34,7 +35,7 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
         if (file instanceof Buffer) {
             blob = new Blob([file]);
         } else {
-            blob = await createBlobFromFile(file!);
+            blob = await createBlobFromFile(expandHomedir(file!));
             if (!fileName) {
                 fileName = path.basename(file!);
             }
@@ -189,4 +190,8 @@ function getUrl(obj?: Record<string, unknown>, path?: string): string {
         return `${baseRestUrl}?${parsedParams}`;
     }
     return baseRestUrl;
+}
+
+function expandHomedir(filePath: string): string {
+    return filePath.startsWith("~") ? path.join(os.homedir(), filePath.slice(1)) : filePath;
 }
