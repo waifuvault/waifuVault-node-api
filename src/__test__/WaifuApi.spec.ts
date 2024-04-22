@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vite
 import Waifuvault, { type FileUpload, type UrlUpload } from "../index.js";
 import { waifuError, waifuResponseMock1, waifuResponseMock2 } from "./mocks/WaifuResponseMock.js";
 import type { ModifyEntryPayload } from "../typeings.js";
+import os from "node:os";
+import fs from "node:fs/promises";
 
 describe("test WaifuApi", () => {
     const baseUrl = "https://waifuvault.moe/rest";
@@ -51,6 +53,22 @@ describe("test WaifuApi", () => {
             };
             const res = await Waifuvault.uploadFile(toUpload);
             expect(res).toBe(waifuResponseMock1);
+            expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                method: "PUT",
+                body,
+            });
+        });
+        it("should expand ~ to home directory for file upload", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const homeSpy = vi.spyOn(os, "homedir").mockReturnValue("/homedir");
+            const fsSpy = vi.spyOn(fs, "readFile").mockResolvedValue(buffer);
+            const toUpload: FileUpload = {
+                file: "~/download/acoolfile.png",
+            };
+            const res = await Waifuvault.uploadFile(toUpload);
+            expect(res).toBe(waifuResponseMock1);
+            expect(homeSpy).toHaveBeenCalled();
+            expect(fsSpy).toHaveBeenCalledWith("/homedir/download/acoolfile.png");
             expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
                 method: "PUT",
                 body,
