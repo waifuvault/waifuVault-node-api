@@ -37,9 +37,12 @@ describe("test WaifuApi", () => {
     describe("uploadFile", () => {
         const [body, buffer, filename] = getBufferFormData();
 
-        function getUrlFormData(url: string): URLSearchParams {
+        function getUrlFormData(url: string, password?: string): URLSearchParams {
             const encodedParams = new URLSearchParams();
             encodedParams.set("url", url);
+            if (password) {
+                encodedParams.set("password", password);
+            }
             return encodedParams;
         }
 
@@ -79,10 +82,10 @@ describe("test WaifuApi", () => {
             const res = await Waifuvault.uploadFile(toUpload);
             expect(res).toBe(waifuResponseMock2);
             expect(spy).toHaveBeenCalledWith(
-                `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}&password=${toUpload.password}`,
+                `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}`,
                 {
                     method: "PUT",
-                    body: getUrlFormData("https:example.com"),
+                    body: getUrlFormData("https:example.com", toUpload.password),
                 },
             );
         });
@@ -100,10 +103,10 @@ describe("test WaifuApi", () => {
             );
 
             expect(spy).toHaveBeenCalledWith(
-                `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}&password=${toUpload.password}`,
+                `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}`,
                 {
                     method: "PUT",
-                    body: getUrlFormData("https:example.com"),
+                    body: getUrlFormData("https:example.com", toUpload.password),
                 },
             );
         });

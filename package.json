@@ -1,6 +1,6 @@
 {
   "name": "waifuvault-node-api",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Official Node API for waifuvault.moe",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
