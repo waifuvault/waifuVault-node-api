@@ -40,10 +40,16 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
             }
         }
         formData.append("file", blob, fileName);
+        if (options.password) {
+            formData.set("password", options.password);
+        }
         body = formData;
     } else {
         const encodedParams = new URLSearchParams();
         encodedParams.set("url", options.url);
+        if (options.password) {
+            encodedParams.set("password", options.password);
+        }
         body = encodedParams;
     }
 
@@ -51,7 +57,6 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
         getUrl({
             expires: options.expires,
             hide_filename: options.hideFilename,
-            password: options.password,
             one_time_download: options.oneTimeDownload,
         }),
         {
@@ -169,22 +174,22 @@ async function checkError(response: Response): Promise<void> {
     }
 }
 
-function getUrl(obj?: Record<string, unknown>, path?: string): string {
+function getUrl(queryParams?: Record<string, unknown>, path?: string): string {
     let baseRestUrl = `${url}/rest`;
     if (path) {
         baseRestUrl += `/${path}`;
     }
-    if (!obj) {
+    if (!queryParams) {
         return baseRestUrl;
     }
-    for (const key of Object.keys(obj)) {
-        if (obj[key] === undefined) {
-            delete obj[key];
+    for (const key of Object.keys(queryParams)) {
+        if (queryParams[key] === undefined) {
+            delete queryParams[key];
         } else {
-            obj[key] = obj[key]?.toString();
+            queryParams[key] = queryParams[key]?.toString();
         }
     }
-    const parsedParams = new URLSearchParams(obj as Record<string, string>);
+    const parsedParams = new URLSearchParams(queryParams as Record<string, string>);
     if (parsedParams) {
         return `${baseRestUrl}?${parsedParams}`;
     }
