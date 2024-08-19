@@ -164,7 +164,10 @@ export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
  */
 export async function getBucket(bucketToken: string, signal?: AbortSignal): Promise<WaifuBucket> {
     const response = await fetch(`${url}/rest/bucket`, {
-        method: "GET",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
         signal,
         body: JSON.stringify({
             bucket_token: bucketToken,

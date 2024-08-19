@@ -271,7 +271,10 @@ describe("test WaifuApi", () => {
                 const res = await Waifuvault.getBucket(waifuBucketMock1.token);
                 expect(res).toBe(waifuBucketMock1);
                 expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket`, {
-                    method: "GET",
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
                     body: JSON.stringify({
                         bucket_token: waifuBucketMock1.token,
                     }),
