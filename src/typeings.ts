@@ -115,6 +115,11 @@ export type WaifuResponse<T extends string | number = number> = {
      * a string or a number that represents when the file will expire, if called with `format` true, then this will be a string like "332 days 7 hours 18 minutes 8 seconds"
      */
     retentionPeriod: T;
+
+    /**
+     * the bucket this belongs to
+     */
+    bucket: string | null;
 };
 
 /**

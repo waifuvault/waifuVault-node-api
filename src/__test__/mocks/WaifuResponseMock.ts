@@ -9,6 +9,7 @@ export const waifuResponseMock1: WaifuResponse = {
         hideFilename: false,
     },
     retentionPeriod: 1234,
+    bucket: "123-fake-street-bucket",
 };
 
 export const waifuResponseMock2: WaifuResponse<string> = {
@@ -20,6 +21,7 @@ export const waifuResponseMock2: WaifuResponse<string> = {
         hideFilename: false,
     },
     retentionPeriod: "1234",
+    bucket: null,
 };
 
 export const waifuBucketMock1: WaifuBucket = {
