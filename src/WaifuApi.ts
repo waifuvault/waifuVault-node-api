@@ -156,6 +156,12 @@ export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
     return response.json();
 }
 
+/**
+ * Get a bucket and all the files it contains
+ * @param {string} bucketToken
+ * @param {AbortSignal} signal
+ * @returns {Promise<WaifuBucket>}
+ */
 export async function getBucket(bucketToken: string, signal?: AbortSignal): Promise<WaifuBucket> {
     const response = await fetch(`${url}/rest/bucket`, {
         method: "GET",
@@ -168,6 +174,12 @@ export async function getBucket(bucketToken: string, signal?: AbortSignal): Prom
     return response.json();
 }
 
+/**
+ * Delete a bucket and all files it contains
+ * @param {string} bucketToken
+ * @param {AbortSignal} signal
+ * @returns {Promise<true>}
+ */
 export async function deleteBucket(bucketToken: string, signal?: AbortSignal): Promise<true> {
     const deleteUrl = `${url}/rest/bucket/${bucketToken}`;
     const response = await fetch(deleteUrl, {
