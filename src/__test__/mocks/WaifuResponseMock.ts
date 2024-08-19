@@ -23,8 +23,8 @@ export const waifuResponseMock2: WaifuResponse<string> = {
 };
 
 export const waifuBucketMock1: WaifuBucket = {
-    ...waifuResponseMock1,
     token: "123-fake-street-bucket",
+    files: [waifuResponseMock1],
 };
 
 export const waifuError: WaifuError = {

@@ -166,11 +166,16 @@ export type GetFileInfoFilename = GetFileInfo & {
     filename: string;
 };
 
-export type WaifuBucket = WaifuResponse & {
+export type WaifuBucket = {
     /**
      * the token of the bucket
      */
     token: string;
+
+    /**
+     * The file contained in this bucket
+     */
+    files: WaifuResponse[];
 };
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
