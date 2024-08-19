@@ -292,3 +292,12 @@ To delete a bucket, you must call the `deleteBucket` function with the following
 | Option      | Type      | Description                       | Required | Extra info        |
 |-------------|-----------|-----------------------------------|----------|-------------------|
 | `token`     | `string`  | The token of the bucket to delete | true     |                   |
+
+> **NOTE:** `deleteBucket` will only ever either return `true` or throw an exception if the token is invalid
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const respo = await Waifuvault.deleteBucket("someToken");
+console.log(respo); // true
+```
