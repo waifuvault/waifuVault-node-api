@@ -4,6 +4,7 @@ import type {
     GetFileInfoToken,
     ModifyEntryPayload,
     UrlUpload,
+    WaifuBucket,
     WaifuError,
     WaifuResponse,
     XOR,
@@ -54,11 +55,14 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
     }
 
     const response = await fetch(
-        getUrl({
-            expires: options.expires,
-            hide_filename: options.hideFilename,
-            one_time_download: options.oneTimeDownload,
-        }),
+        getUrl(
+            {
+                expires: options.expires,
+                hide_filename: options.hideFilename,
+                one_time_download: options.oneTimeDownload,
+            },
+            options.bucketToken,
+        ),
         {
             signal,
             method: "PUT",
@@ -136,6 +140,43 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, 
     await checkError(response);
     const arrayBuffer = await response.arrayBuffer();
     return Buffer.from(arrayBuffer);
+}
+
+/**
+ * create a new bucket, buckets are bound to your IP, so you may only have one bucket per IP
+ * @param {AbortSignal} signal
+ * @returns {Promise<string>}
+ */
+export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
+    const response = await fetch(`${url}/rest/bucket/createBucket`, {
+        method: "GET",
+        signal,
+    });
+    await checkError(response);
+    return response.json();
+}
+
+export async function getBucket(bucketToken: string, signal?: AbortSignal): Promise<WaifuBucket> {
+    const response = await fetch(`${url}/rest/bucket`, {
+        method: "GET",
+        signal,
+        body: JSON.stringify({
+            bucket_token: bucketToken,
+        }),
+    });
+    await checkError(response);
+    return response.json();
+}
+
+export async function deleteBucket(bucketToken: string, signal?: AbortSignal): Promise<true> {
+    const deleteUrl = `${url}/rest/bucket/${bucketToken}`;
+    const response = await fetch(deleteUrl, {
+        method: "DELETE",
+        signal,
+    });
+    await checkError(response);
+    await response.text();
+    return true;
 }
 
 /**

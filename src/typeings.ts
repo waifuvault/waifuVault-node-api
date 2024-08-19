@@ -23,6 +23,11 @@ type WaifuvaultPutOpts = {
      * If this is true, then the file will be deleted as soon as it is accessed
      */
     oneTimeDownload?: boolean;
+
+    /**
+     * If supplied, this file will be associated to that bucket
+     */
+    bucketToken?: string;
 };
 
 /**
@@ -159,6 +164,13 @@ export type GetFileInfoFilename = GetFileInfo & {
      * files with hidden filenames will only contain the epoch with ext. for example, 1710111505084.png
      */
     filename: string;
+};
+
+export type WaifuBucket = WaifuResponse & {
+    /**
+     * the token of the bucket
+     */
+    token: string;
 };
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };

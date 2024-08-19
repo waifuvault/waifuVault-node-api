@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import Waifuvault, { type FileUpload, type UrlUpload } from "../index.js";
-import { waifuError, waifuResponseMock1, waifuResponseMock2 } from "./mocks/WaifuResponseMock.js";
+import { waifuBucketMock1, waifuError, waifuResponseMock1, waifuResponseMock2 } from "./mocks/WaifuResponseMock.js";
 import type { ModifyEntryPayload } from "../typeings.js";
 
 describe("test WaifuApi", () => {
@@ -111,7 +111,6 @@ describe("test WaifuApi", () => {
             );
         });
     });
-
     describe("fileInfo", () => {
         it("should get fileInfo from token", async () => {
             spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1));
@@ -252,6 +251,51 @@ describe("test WaifuApi", () => {
                 },
                 method: "PATCH",
                 body: JSON.stringify(modifyRequest),
+            });
+        });
+    });
+    describe("buckets", () => {
+        describe("create bucket", () => {
+            it("should create a new bucket", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuBucketMock1) as Response);
+                const res = await Waifuvault.createBucket();
+                expect(res).toBe(waifuBucketMock1);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/createBucket`, {
+                    method: "GET",
+                });
+            });
+        });
+        describe("get bucket", () => {
+            it("should get a bucket", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuBucketMock1) as Response);
+                const res = await Waifuvault.getBucket(waifuBucketMock1.token);
+                expect(res).toBe(waifuBucketMock1);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket`, {
+                    method: "GET",
+                    body: JSON.stringify({
+                        bucket_token: waifuBucketMock1.token,
+                    }),
+                    signal: undefined,
+                });
+            });
+        });
+        describe("delete bucket", () => {
+            it("should delete a bucket", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, "true") as Response);
+                const res = await Waifuvault.deleteBucket(waifuBucketMock1.token);
+                expect(res).toBe(true);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/${waifuBucketMock1.token}`, {
+                    method: "DELETE",
+                });
+            });
+            it("should handle error", async () => {
+                spy.mockResolvedValue(createFetchResponse(400, waifuError));
+                await expect(Waifuvault.deleteBucket(waifuBucketMock1.token)).rejects.toThrowError(
+                    `Error ${waifuError.status} (${waifuError.name}): ${waifuError.message}`,
+                );
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/${waifuBucketMock1.token}`, {
+                    method: "DELETE",
+                });
             });
         });
     });
