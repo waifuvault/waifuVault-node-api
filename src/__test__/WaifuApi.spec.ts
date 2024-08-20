@@ -260,7 +260,7 @@ describe("test WaifuApi", () => {
                 spy.mockResolvedValue(createFetchResponse(200, waifuBucketMock1) as Response);
                 const res = await Waifuvault.createBucket();
                 expect(res).toBe(waifuBucketMock1);
-                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/createBucket`, {
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/create`, {
                     method: "GET",
                 });
             });
@@ -270,7 +270,7 @@ describe("test WaifuApi", () => {
                 spy.mockResolvedValue(createFetchResponse(200, waifuBucketMock1) as Response);
                 const res = await Waifuvault.getBucket(waifuBucketMock1.token);
                 expect(res).toBe(waifuBucketMock1);
-                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket`, {
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/get`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

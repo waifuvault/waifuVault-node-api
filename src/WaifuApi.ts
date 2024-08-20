@@ -148,7 +148,7 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, 
  * @returns {Promise<string>}
  */
 export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
-    const response = await fetch(`${url}/rest/bucket/createBucket`, {
+    const response = await fetch(`${url}/rest/bucket/create`, {
         method: "GET",
         signal,
     });
@@ -163,7 +163,7 @@ export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
  * @returns {Promise<WaifuBucket>}
  */
 export async function getBucket(bucketToken: string, signal?: AbortSignal): Promise<WaifuBucket> {
-    const response = await fetch(`${url}/rest/bucket`, {
+    const response = await fetch(`${url}/rest/bucket/get`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
