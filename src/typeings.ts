@@ -23,6 +23,11 @@ type WaifuvaultPutOpts = {
      * If this is true, then the file will be deleted as soon as it is accessed
      */
     oneTimeDownload?: boolean;
+
+    /**
+     * If supplied, this file will be associated to that bucket
+     */
+    bucketToken?: string;
 };
 
 /**
@@ -110,6 +115,11 @@ export type WaifuResponse<T extends string | number = number> = {
      * a string or a number that represents when the file will expire, if called with `format` true, then this will be a string like "332 days 7 hours 18 minutes 8 seconds"
      */
     retentionPeriod: T;
+
+    /**
+     * the bucket this belongs to
+     */
+    bucket: string | null;
 };
 
 /**
@@ -159,6 +169,18 @@ export type GetFileInfoFilename = GetFileInfo & {
      * files with hidden filenames will only contain the epoch with ext. for example, 1710111505084.png
      */
     filename: string;
+};
+
+export type WaifuBucket = {
+    /**
+     * the token of the bucket
+     */
+    token: string;
+
+    /**
+     * The file contained in this bucket
+     */
+    files: WaifuResponse[];
 };
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };

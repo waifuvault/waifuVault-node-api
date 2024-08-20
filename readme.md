@@ -20,6 +20,9 @@ This API contains 4 interactions:
 3. [Delete File](#delete-file)
 4. [Get File](#get-file)
 5. [Modify Entry](#modify-entry)
+6. [Create Bucket](#create-bucket)
+7. [Get Bucket](#get-bucket)
+8. [Delete Bucket](#delete-bucket)
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -43,6 +46,7 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 | `password`        | `string`             | If set, then the uploaded file will be encrypted                                  | false                               |                                               |
 | `filename`        | `string`             | Only used if `file` is set and is a `Buffer`, will set the filename of the buffer | false                               |                                               |
 | `oneTimeDownload` | `boolean`            | if supplied, the file will be deleted as soon as it is accessed                   | false                               |                                               |
+| `bucketToken`     | `string`             | if supplied, the file will be associated with the bucket                          | false                               |                                               |
 
 Using a URL:
 
@@ -246,4 +250,54 @@ const foo = await Waifuvault.modifyEntry("token", {
 });
 
 foo.protected; // false
+```
+
+### Create bucket<a id="create-bucket"></a>
+
+Buckets are virtual collections that are linked to your IP and a token. When you create a bucket, you will receive a bucket token that you can use in [Get Bucket](#get-bucket) to get all the files in that bucket
+
+To create a bucket, use the `createBucket` function. This function does not take any arguments.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.createBucket();
+console.log(resp.token); // the token to the new bucket
+```
+### Get Bucket<a id="get-bucket"></a>
+
+To get a bucket, you must use the `getBucket` function and supply the token.
+This function takes the following options as parameters:
+
+| Option      | Type      | Description             | Required | Extra info        |
+|-------------|-----------|-------------------------|----------|-------------------|
+| `token`     | `string`  | The token of the bucket | true     |                   |
+
+This will respond with the bucket and all the files the bucket contains.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const bucket = await Waifuvault.getBucket("someToken");
+console.log(bucket.token); //the token to the new bucket
+console.log(bucket.files); // an array of files in this bucket
+```
+
+### Delete Bucket<a id="delete-bucket"></a>
+
+Deleting a bucket will delete the bucket and all the files it contains.
+
+To delete a bucket, you must call the `deleteBucket` function with the following options as parameters:
+
+| Option      | Type      | Description                       | Required | Extra info        |
+|-------------|-----------|-----------------------------------|----------|-------------------|
+| `token`     | `string`  | The token of the bucket to delete | true     |                   |
+
+> **NOTE:** `deleteBucket` will only ever either return `true` or throw an exception if the token is invalid
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const respo = await Waifuvault.deleteBucket("someToken");
+console.log(respo); // true
 ```

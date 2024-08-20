@@ -1,4 +1,4 @@
-import type { WaifuError, WaifuResponse } from "../../typeings.js";
+import type { WaifuBucket, WaifuError, WaifuResponse } from "../../typeings.js";
 
 export const waifuResponseMock1: WaifuResponse = {
     url: "https://waifuvault.moe/f/1710111505084/08.png",
@@ -9,6 +9,7 @@ export const waifuResponseMock1: WaifuResponse = {
         hideFilename: false,
     },
     retentionPeriod: 1234,
+    bucket: "123-fake-street-bucket",
 };
 
 export const waifuResponseMock2: WaifuResponse<string> = {
@@ -20,6 +21,12 @@ export const waifuResponseMock2: WaifuResponse<string> = {
         hideFilename: false,
     },
     retentionPeriod: "1234",
+    bucket: null,
+};
+
+export const waifuBucketMock1: WaifuBucket = {
+    token: "123-fake-street-bucket",
+    files: [waifuResponseMock1],
 };
 
 export const waifuError: WaifuError = {
