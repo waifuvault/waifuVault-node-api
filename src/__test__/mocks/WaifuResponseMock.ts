@@ -23,6 +23,7 @@ export const waifuResponseMock1: WaifuFileWithAlbum = {
     bucket: "123-fake-street-bucket",
     id: 1,
     album: null,
+    views: 0,
 };
 
 export const waifuResponseMock2: WaifuFileWithAlbum<string> = {
@@ -37,6 +38,7 @@ export const waifuResponseMock2: WaifuFileWithAlbum<string> = {
     bucket: null,
     id: 2,
     album: null,
+    views: 0,
 };
 
 export const waifuBucketMock1: WaifuBucket = {
