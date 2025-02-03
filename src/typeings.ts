@@ -125,6 +125,11 @@ export type WaifuFile<T extends string | number = number> = {
      * The public ID of this file
      */
     id: number;
+
+    /**
+     * How many people have downloaded this file
+     */
+    views: number;
 };
 
 /**
