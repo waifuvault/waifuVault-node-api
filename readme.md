@@ -23,6 +23,14 @@ This API contains 4 interactions:
 6. [Create Bucket](#create-bucket)
 7. [Get Bucket](#get-bucket)
 8. [Delete Bucket](#delete-bucket)
+9. [Create Album](#create-album)
+10. [Delete Album](#delete-album)
+11. [Get Album](#get-album)
+12. [Associate Files](#associate-files)
+13. [Disassociate Files](#disassociate-files)
+14. [Share Album](#share-album)
+15. [Revoke Album](#revoke-album)
+16. [Download Album](#download-album)
 
 The package is namespaced to `Waifuvault`, so to import it, simply:
 
@@ -71,7 +79,7 @@ const resp = await Waifuvault.uploadFile({
 console.log(resp.url); // the file download URL
 ```
 
-Using a a file path:
+Using a file path:
 
 ```ts
 import Waifuvault from "waifuvault-node-api";
@@ -254,7 +262,8 @@ foo.protected; // false
 
 ### Create bucket<a id="create-bucket"></a>
 
-Buckets are virtual collections that are linked to your IP and a token. When you create a bucket, you will receive a bucket token that you can use in [Get Bucket](#get-bucket) to get all the files in that bucket
+Buckets are virtual collections that are linked to your IP and a token. When you create a bucket, you will receive a
+bucket token that you can use in [Get Bucket](#get-bucket) to get all the files in that bucket
 
 To create a bucket, use the `createBucket` function. This function does not take any arguments.
 
@@ -264,14 +273,15 @@ import Waifuvault from "waifuvault-node-api";
 const resp = await Waifuvault.createBucket();
 console.log(resp.token); // the token to the new bucket
 ```
+
 ### Get Bucket<a id="get-bucket"></a>
 
 To get a bucket, you must use the `getBucket` function and supply the token.
 This function takes the following options as parameters:
 
-| Option      | Type      | Description             | Required | Extra info        |
-|-------------|-----------|-------------------------|----------|-------------------|
-| `token`     | `string`  | The token of the bucket | true     |                   |
+| Option  | Type     | Description             | Required | Extra info |
+|---------|----------|-------------------------|----------|------------|
+| `token` | `string` | The token of the bucket | true     |            |
 
 This will respond with the bucket and all the files the bucket contains.
 
@@ -289,9 +299,9 @@ Deleting a bucket will delete the bucket and all the files it contains.
 
 To delete a bucket, you must call the `deleteBucket` function with the following options as parameters:
 
-| Option      | Type      | Description                       | Required | Extra info        |
-|-------------|-----------|-----------------------------------|----------|-------------------|
-| `token`     | `string`  | The token of the bucket to delete | true     |                   |
+| Option  | Type     | Description                       | Required | Extra info |
+|---------|----------|-----------------------------------|----------|------------|
+| `token` | `string` | The token of the bucket to delete | true     |            |
 
 > **NOTE:** `deleteBucket` will only ever either return `true` or throw an exception if the token is invalid
 
@@ -300,4 +310,239 @@ import Waifuvault from "waifuvault-node-api";
 
 const respo = await Waifuvault.deleteBucket("someToken");
 console.log(respo); // true
+```
+
+### Create Album<a id="create-album"></a>
+
+Albums are shareable collections of files that exist within a bucket.
+
+To create an album, you use the `createAlbum` function and supply a bucket token and name.
+
+The function takes the following options as an object:
+
+| Option        | Type     | Description                         | Required | Extra info |
+|---------------|----------|-------------------------------------|----------|------------|
+| `bucketToken` | `string` | The token of the bucket             | true     |            |
+| `name`        | `string` | The name of the album to be created | true     |            |
+
+This will respond with an album object containing the name and token of the album.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const album = await Waifuvault.createAlbum({
+    name: "myNewAlbum",
+    bucketToken: "someBucketToken"
+});
+
+console.log(album.token); // album token
+console.log(album.name); // album name
+console.log(album.files); // all files associated with the album
+```
+
+### Delete Album<a id="delete-album"></a>
+
+To delete an album, you use the `deleteAlbum` function and supply the album token and a boolean indication of whether
+the files contained in the album should be deleted or not.
+If you choose false, the files will remain in the bucket.
+
+The function takes the following parameters:
+
+| Option        | Type      | Description                         | Required | Extra info          |
+|---------------|-----------|-------------------------------------|----------|---------------------|
+| `albumToken`  | `string`  | The private token of the album      | true     |                     |
+| `deleteFiles` | `boolean` | Whether the files should be deleted | false    | defaults to `false` |
+
+> **NOTE:** If `deleteFiles` is set to True, the files will be permanently deleted
+
+this will return an object where the status is true if it was a success, or it will throw an error if it wasn't
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.deleteAlbum("albumToken");
+
+console.log(resp.success); // true
+```
+
+delete files:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.deleteAlbum("albumToken", true);
+
+console.log(resp.success); // true
+```
+
+### Get Album<a id="get-album"></a>
+
+To get the contents of an album, you use the `getAlbum` function and supply the album token.
+The token must be the private token.
+
+The function takes the following parameters:
+
+| Option  | Type     | Description                    | Required | Extra info |
+|---------|----------|--------------------------------|----------|------------|
+| `token` | `string` | The private token of the album | true     |            |
+
+This will respond with the album object containing the album information and files contained within the album.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.getAlbum("SomeToken");
+
+console.log(resp.token);
+console.log(resp.bucketToken);
+console.log(resp.publicToken);
+console.log(resp.name);
+console.log(resp.files);
+```
+
+### Associate File<a id="associate-files"></a>
+
+To add files to an album, you use the `associateFiles` function and supply the private album token and a list of file
+tokens.
+
+The function takes the following parameters:
+
+| Option             | Type       | Description                         | Required | Extra info |
+|--------------------|------------|-------------------------------------|----------|------------|
+| `albumToken`       | `string`   | The private token of the album      | true     |            |
+| `filesToAssociate` | `string[]` | List of file tokens to add to album | true     |            |
+
+This will respond with the new album object containing the added files.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.associateFiles("someToken", ["someFileToken"]);
+
+console.log(resp.token);
+console.log(resp.bucketToken);
+console.log(resp.publicToken);
+console.log(resp.name);
+console.log(resp.files); // will include the new file
+```
+
+### Disassociate File<a id="disassociate-files"></a>
+
+To remove files from an album, you use the `disassociateFiles` function and supply the private album token and
+a list of file tokens.
+
+The function takes the following parameters:
+
+| Option             | Type       | Description                                  | Required | Extra info |
+|--------------------|------------|----------------------------------------------|----------|------------|
+| `albumToken`       | `string`   | The private token of the album               | true     |            |
+| `filesToAssociate` | `string[]` | List of file tokens to remove from the album | true     |            |
+
+This will respond with the new album object with the files removed.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.disassociateFiles("someToken", ["someFileToken"]);
+
+console.log(resp.token);
+console.log(resp.bucketToken);
+console.log(resp.publicToken);
+console.log(resp.name);
+console.log(resp.files); // will not include the file
+```
+
+### Share Album<a id="share-album"></a>
+
+To share an album, so it contents can be accessed from a public URL, you use the `shareAlbum` function and supply the
+private token.
+
+The function takes the following parameters:
+
+| Option       | Type     | Description                    | Required | Extra info |
+|--------------|----------|--------------------------------|----------|------------|
+| `albumToken` | `string` | The private token of the album | true     |            |
+
+This will respond with the public URL with which the album can be found.
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const url = await Waifuvault.shareAlbum("privateAlbumToken");
+
+console.log(url); // the url
+```
+
+> **NOTE:** The public album token can be found in the [Get Album](#get-album) results
+
+### Revoke Album<a id="revoke-album"></a>
+
+To revoke the sharing of an album, so it will no longer be accessible publicly, you use the `revokeAlbum` function
+and supply the private token.
+
+The function takes the following parameters:
+
+| Option       | Type     | Description                    | Required | Extra info |
+|--------------|----------|--------------------------------|----------|------------|
+| `albumToken` | `string` | The private token of the album | true     |            |
+
+this will return an object where the status is true if it was a success, or it will throw an error if it wasn't
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const resp = await Waifuvault.revokeAlbum("somePrivateToken");
+
+console.log(resp.success); // true
+```
+
+> **NOTE:** Once revoked, the URL for sharing is destroyed. If the album is later shared again, the URL issued will be
+> different.
+
+### Download Album<a id="download-album"></a>
+
+To download the contents of an album as a zip file, you use the `downloadAlbum` function and supply a private or public
+token for the album.
+
+You can also supply the file ids as an array to selectively download files. these ids can be found as part of the
+`WaifuFile` response.
+
+The zip file will be returned as a buffer.
+
+The function takes the following parameters:
+
+| Option       | Type       | Description                              | Required | Extra info                                               |
+|--------------|------------|------------------------------------------|----------|----------------------------------------------------------|
+| `albumToken` | `string`   | The private or public token of the album | true     |                                                          |
+| `files`      | `number[]` | The ids of the files to download         | false    | the ids can be found as part of the `WaifuFile` response |
+
+download all files:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+Waifuvault.downloadAlbum("someAlbumToken");
+```
+
+selective files:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+Waifuvault.downloadAlbum("someAlbumToken", [1]);
+```
+
+get a file id from token:
+
+```ts
+import Waifuvault from "waifuvault-node-api";
+
+const fileToken = "someToken";
+
+// get file info
+const fileInfo = await Waifuvault.fileInfo(fileToken);
+
+// download the one file as zip
+
+Waifuvault.downloadAlbum(fileInfo.album.token, [fileInfo.id]);
 ```

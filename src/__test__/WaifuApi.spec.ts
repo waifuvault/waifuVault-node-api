@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
-import Waifuvault, { type FileUpload, type UrlUpload } from "../index.js";
-import { waifuBucketMock1, waifuError, waifuResponseMock1, waifuResponseMock2 } from "./mocks/WaifuResponseMock.js";
+import Waifuvault, { type FileUpload, type UrlUpload, type WaifuAlbumCreateBody } from "../index.js";
+import {
+    genericSuccessDeletedMock,
+    sharedFileMock1,
+    waifuAlbumMock1,
+    waifuAlbumMock2,
+    waifuBucketMock1,
+    waifuError,
+    waifuResponseMock1,
+    waifuResponseMock2,
+} from "./mocks/WaifuResponseMock.js";
 import type { ModifyEntryPayload } from "../typeings.js";
 
 describe("test WaifuApi", () => {
@@ -12,7 +21,7 @@ describe("test WaifuApi", () => {
         return {
             json: () => new Promise(resolve => resolve(data as Record<string, unknown>)),
             text: () => new Promise(resolve => resolve(JSON.stringify(data))),
-            arrayBuffer: () => new Promise(resolve => resolve(Buffer.from(data as ArrayBuffer))),
+            arrayBuffer: () => new Promise(resolve => resolve(data as ArrayBuffer)),
             status,
             ok: status >= 200 && status <= 299,
         };
@@ -32,6 +41,12 @@ describe("test WaifuApi", () => {
         const formData = new FormData();
         formData.append("file", new Blob([buffer]), fileName);
         return [formData, buffer, fileName];
+    }
+
+    function getZipBufferFromData(): [number[], Buffer, string] {
+        const buffer = Buffer.from("slut");
+        const fileName = "aWhore.zip";
+        return [[waifuResponseMock1.id], buffer, fileName];
     }
 
     describe("uploadFile", () => {
@@ -130,7 +145,7 @@ describe("test WaifuApi", () => {
         it("should delete a file given a token", async () => {
             spy.mockResolvedValueOnce(createFetchResponse(200, "true"));
             const res = await Waifuvault.deleteFile(waifuResponseMock1.token);
-            expect(res).toBe(true);
+            expect(res).toStrictEqual(genericSuccessDeletedMock);
             expect(spy).toHaveBeenCalledWith(`${baseUrl}/${waifuResponseMock1.token}`, {
                 method: "DELETE",
             });
@@ -286,7 +301,7 @@ describe("test WaifuApi", () => {
             it("should delete a bucket", async () => {
                 spy.mockResolvedValue(createFetchResponse(200, "true") as Response);
                 const res = await Waifuvault.deleteBucket(waifuBucketMock1.token);
-                expect(res).toBe(true);
+                expect(res).toStrictEqual(genericSuccessDeletedMock);
                 expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/${waifuBucketMock1.token}`, {
                     method: "DELETE",
                 });
@@ -298,6 +313,154 @@ describe("test WaifuApi", () => {
                 );
                 expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket/${waifuBucketMock1.token}`, {
                     method: "DELETE",
+                });
+            });
+        });
+    });
+    describe("albums", () => {
+        describe("create album", () => {
+            it("should create a new album in an existing bucket with files", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuAlbumMock1) as Response);
+                const body: WaifuAlbumCreateBody = {
+                    name: waifuAlbumMock1.name,
+                    bucketToken: waifuBucketMock1.token,
+                };
+                const res = await Waifuvault.createAlbum(body);
+                expect(res).toBe(waifuAlbumMock1);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuBucketMock1.token}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(body),
+                    signal: undefined,
+                });
+            });
+            it("should create a new album in an existing bucket", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuAlbumMock2) as Response);
+                const body: WaifuAlbumCreateBody = {
+                    name: waifuAlbumMock2.name,
+                    bucketToken: waifuBucketMock1.token,
+                };
+                const res = await Waifuvault.createAlbum(body);
+                expect(res).toBe(waifuAlbumMock2);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuBucketMock1.token}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(body),
+                    signal: undefined,
+                });
+            });
+        });
+        describe("associations", () => {
+            it("should associate a file to an album", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuAlbumMock1) as Response);
+                const res = await Waifuvault.associateFiles(waifuAlbumMock1.token, [waifuResponseMock1.token]);
+                expect(res).toBe(waifuAlbumMock1);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuAlbumMock1.token}/associate`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        fileTokens: [waifuResponseMock1.token],
+                    }),
+                    signal: undefined,
+                });
+            });
+            it("should disassociate a file from an album", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuAlbumMock2) as Response);
+                const res = await Waifuvault.disassociateFiles(waifuAlbumMock2.token, [waifuResponseMock1.token]);
+                expect(res).toBe(waifuAlbumMock2);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuAlbumMock2.token}/disassociate`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        fileTokens: [waifuResponseMock1.token],
+                    }),
+                    signal: undefined,
+                });
+            });
+        });
+        describe("get album", () => {
+            it("should get an album from a private token", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, waifuAlbumMock2) as Response);
+                const res = await Waifuvault.getAlbum(waifuAlbumMock2.token);
+                expect(res).toBe(waifuAlbumMock2);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuAlbumMock2.token}`, {
+                    signal: undefined,
+                });
+            });
+        });
+        describe("delete album", () => {
+            it("should delete an album from the private token", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, genericSuccessDeletedMock) as Response);
+                const res = await Waifuvault.deleteAlbum(waifuAlbumMock2.token);
+                expect(res).toStrictEqual(genericSuccessDeletedMock);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuAlbumMock2.token}?deleteFiles=false`, {
+                    method: "DELETE",
+                    signal: undefined,
+                });
+            });
+            it("should delete an album from the private token delete files true", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, genericSuccessDeletedMock) as Response);
+                const res = await Waifuvault.deleteAlbum(waifuAlbumMock2.token, true);
+                expect(res).toStrictEqual(genericSuccessDeletedMock);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/${waifuAlbumMock2.token}?deleteFiles=true`, {
+                    method: "DELETE",
+                    signal: undefined,
+                });
+            });
+        });
+        describe("sharing albums", () => {
+            it("should share an album", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, sharedFileMock1) as Response);
+                const res = await Waifuvault.shareAlbum(waifuAlbumMock2.token);
+                expect(res).toBe(sharedFileMock1.description); // ensure the response of the method returns the `description` key
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/share/${waifuAlbumMock2.token}`, {
+                    signal: undefined,
+                });
+            });
+            it("should revoke a shared album", async () => {
+                spy.mockResolvedValue(createFetchResponse(200, sharedFileMock1) as Response);
+                const res = await Waifuvault.revokeAlbum(waifuAlbumMock1.token);
+                expect(res).toBe(sharedFileMock1);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/revoke/${waifuAlbumMock1.token}`, {
+                    signal: undefined,
+                });
+            });
+        });
+        describe("download album", () => {
+            it("should download a single file from an album", async () => {
+                const [, buffer] = getZipBufferFromData();
+                spy.mockResolvedValueOnce(createFetchResponse(200, buffer));
+                const res = await Waifuvault.downloadAlbum(waifuAlbumMock1.token, [waifuResponseMock1.id]);
+                expect(res).toStrictEqual(buffer);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/download/${waifuAlbumMock1.token}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify([waifuResponseMock1.id]),
+                    signal: undefined,
+                });
+            });
+            it("should download a whole album", async () => {
+                const [, buffer] = getZipBufferFromData();
+                spy.mockResolvedValueOnce(createFetchResponse(200, buffer));
+                const res = await Waifuvault.downloadAlbum(waifuAlbumMock1.token);
+                expect(res).toStrictEqual(buffer);
+                expect(spy).toHaveBeenCalledWith(`${baseUrl}/album/download/${waifuAlbumMock1.token}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify([]),
+                    signal: undefined,
                 });
             });
         });

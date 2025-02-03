@@ -1,26 +1,27 @@
 import type {
     FileUpload,
+    GenericSuccess,
     GetFileInfoFilename,
     GetFileInfoToken,
     ModifyEntryPayload,
     UrlUpload,
-    WaifuBucket,
-    WaifuError,
-    WaifuResponse,
+    WaifuFileWithAlbum,
     XOR,
-} from "./typeings.js";
+} from "./typeings";
 import fs from "node:fs/promises";
 import path from "node:path";
-
-const url = "https://waifuvault.moe";
+import { checkError, getUrl, url } from "./utils.js";
 
 /**
  * Upload a file to waifuvault given a file or a URL
  * @param {XOR<FileUpload, UrlUpload>} options
  * @param {AbortSignal} signal an abort signal to use in the request
- * @returns {Promise<WaifuResponse>}
+ * @returns {Promise<WaifuFile>}
  */
-export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: AbortSignal): Promise<WaifuResponse> {
+export async function uploadFile(
+    options: XOR<FileUpload, UrlUpload>,
+    signal?: AbortSignal,
+): Promise<WaifuFileWithAlbum> {
     async function createBlobFromFile(path: string): Promise<Blob> {
         const file = await fs.readFile(path);
         return new Blob([file]);
@@ -78,13 +79,13 @@ export async function uploadFile(options: XOR<FileUpload, UrlUpload>, signal?: A
  * @param {string} token
  * @param {B} formatted - if true then `retentionPeriod` will be a human-readable string of when the file expires. else it will be an epoch number
  * @param {AbortSignal} signal an abort signal to use in the request
- * @returns {Promise<B extends true ? WaifuResponse<string> : WaifuResponse<number>>}
+ * @returns {Promise<B extends true ? WaifuFile<string> : WaifuFile<number>>}
  */
 export async function fileInfo<B extends boolean = false>(
     token: string,
     formatted?: B,
     signal?: AbortSignal,
-): Promise<B extends true ? WaifuResponse<string> : WaifuResponse<number>> {
+): Promise<B extends true ? WaifuFileWithAlbum<string> : WaifuFileWithAlbum<number>> {
     const url = getUrl({ formatted }, token);
     const response = await fetch(url, { signal });
     await checkError(response);
@@ -97,7 +98,7 @@ export async function fileInfo<B extends boolean = false>(
  * @param {AbortSignal} signal the abort signal to use in the request
  * @returns {Promise<true | never>}
  */
-export async function deleteFile(token: string, signal?: AbortSignal): Promise<true | never> {
+export async function deleteFile(token: string, signal?: AbortSignal): Promise<GenericSuccess> {
     const url = getUrl(undefined, token);
     const response = await fetch(url, {
         method: "DELETE",
@@ -107,7 +108,10 @@ export async function deleteFile(token: string, signal?: AbortSignal): Promise<t
 
     // at this point, the response has to be `true`, so consume the response and throw it away
     await response.text();
-    return true;
+    return {
+        description: "deleted",
+        success: true,
+    };
 }
 
 /**
@@ -143,64 +147,12 @@ export async function getFile(opts: XOR<GetFileInfoToken, GetFileInfoFilename>, 
 }
 
 /**
- * create a new bucket, buckets are bound to your IP, so you may only have one bucket per IP
- * @param {AbortSignal} signal
- * @returns {Promise<string>}
- */
-export async function createBucket(signal?: AbortSignal): Promise<WaifuBucket> {
-    const response = await fetch(`${url}/rest/bucket/create`, {
-        method: "GET",
-        signal,
-    });
-    await checkError(response);
-    return response.json();
-}
-
-/**
- * Get a bucket and all the files it contains
- * @param {string} bucketToken
- * @param {AbortSignal} signal
- * @returns {Promise<WaifuBucket>}
- */
-export async function getBucket(bucketToken: string, signal?: AbortSignal): Promise<WaifuBucket> {
-    const response = await fetch(`${url}/rest/bucket/get`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        signal,
-        body: JSON.stringify({
-            bucket_token: bucketToken,
-        }),
-    });
-    await checkError(response);
-    return response.json();
-}
-
-/**
- * Delete a bucket and all files it contains
- * @param {string} bucketToken
- * @param {AbortSignal} signal
- * @returns {Promise<true>}
- */
-export async function deleteBucket(bucketToken: string, signal?: AbortSignal): Promise<true> {
-    const deleteUrl = `${url}/rest/bucket/${bucketToken}`;
-    const response = await fetch(deleteUrl, {
-        method: "DELETE",
-        signal,
-    });
-    await checkError(response);
-    await response.text();
-    return true;
-}
-
-/**
  * modify an entry
  * @param {string} token
  * @param {ModifyEntryPayload} opts
- * @returns {Promise<WaifuResponse>}
+ * @returns {Promise<WaifuFile>}
  */
-export async function modifyEntry(token: string, opts: ModifyEntryPayload): Promise<WaifuResponse> {
+export async function modifyEntry(token: string, opts: ModifyEntryPayload): Promise<WaifuFileWithAlbum> {
     const url = getUrl(undefined, token);
     const response = await fetch(url, {
         body: JSON.stringify(opts),
@@ -211,43 +163,4 @@ export async function modifyEntry(token: string, opts: ModifyEntryPayload): Prom
     });
     await checkError(response);
     return response.json();
-}
-
-async function checkError(response: Response): Promise<void> {
-    if (!response.ok) {
-        const err = await response.text();
-        let errStr;
-        try {
-            const respErrorJson: WaifuError = JSON.parse(err);
-            errStr = `Error ${respErrorJson.status} (${respErrorJson.name}): ${respErrorJson.message}`;
-        } catch {
-            errStr = err;
-        }
-
-        throw new Error(errStr, {
-            cause: err,
-        });
-    }
-}
-
-function getUrl(queryParams?: Record<string, unknown>, path?: string): string {
-    let baseRestUrl = `${url}/rest`;
-    if (path) {
-        baseRestUrl += `/${path}`;
-    }
-    if (!queryParams) {
-        return baseRestUrl;
-    }
-    for (const key of Object.keys(queryParams)) {
-        if (queryParams[key] === undefined) {
-            delete queryParams[key];
-        } else {
-            queryParams[key] = queryParams[key]?.toString();
-        }
-    }
-    const parsedParams = new URLSearchParams(queryParams as Record<string, string>);
-    if (parsedParams) {
-        return `${baseRestUrl}?${parsedParams}`;
-    }
-    return baseRestUrl;
 }

@@ -19,22 +19,24 @@
     "lint:fix": "npx eslint --fix .",
     "prettier": "npx prettier ./src --check",
     "prettier:fix": "npx prettier ./src --write",
-    "prepare": "husky install",
+    "prepare": "husky",
     "test": "vitest"
   },
   "keywords": [],
   "author": "Victoria",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^8.57.0",
-    "eslint": "^8.57.0",
-    "husky": "^9.0.11",
-    "prettier": "3.2.5",
+    "@eslint/js": "^9.19.0",
+    "eslint": "^9.19.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "3.4.2",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.3.3",
-    "typescript-eslint": "^7.1.0",
-    "vitest": "^1.4.0"
+    "tsc-files": "^1.1.4",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.22.0",
+    "vitest": "^3.0.4"
   },
   "homepage": "https://github.com/waifuvault/waifuVault-node-api",
   "repository": {
@@ -43,6 +45,7 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
+      "tsc-files --noEmit --pretty",
       "eslint --cache --fix",
       "prettier --write"
     ]
