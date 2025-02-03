@@ -95,7 +95,7 @@ export type WaifuResponseOptions = {
 /**
  * The response from the api for files and uploads
  */
-export type WaifuResponse<T extends string | number = number> = {
+export type WaifuFile<T extends string | number = number> = {
     /**
      * The token for the uploaded file
      */
@@ -120,6 +120,71 @@ export type WaifuResponse<T extends string | number = number> = {
      * the bucket this belongs to
      */
     bucket: string | null;
+
+    /** #
+     * The public ID of this file
+     */
+    id: number;
+
+    /**
+     * How many people have downloaded this file
+     */
+    views: number;
+};
+
+/**
+ * A standard file that also contains info on the album that contains it
+ */
+export type WaifuFileWithAlbum<T extends string | number = number> = WaifuFile<T> & {
+    /**
+     * The album this file belongs to
+     */
+    album: WaifuAlbum | null;
+};
+
+/**
+ * An album stub is an album but with files omitted
+ */
+export type AlbumStub = Omit<WaifuAlbum, "files" | "bucketToken"> & {
+    /**
+     * the token of the bucket this album belongs to
+     */
+    bucket: string;
+};
+
+/**
+ * An album is a public collection of files, it can be shared with others in a read-only fashion.
+ */
+export type WaifuAlbum = {
+    /**
+     * The private token of this album
+     */
+    token: string;
+
+    /**
+     * the token of the bucket this album belongs to
+     */
+    bucketToken: string;
+
+    /**
+     * The public token used to share the album with others
+     */
+    publicToken: string | null;
+
+    /**
+     * The name of the album
+     */
+    name: string;
+
+    /**
+     * The files contained in this album
+     */
+    files: WaifuFile[];
+
+    /**
+     * The date this album was created
+     */
+    dateCreated: number;
 };
 
 /**
@@ -180,7 +245,29 @@ export type WaifuBucket = {
     /**
      * The file contained in this bucket
      */
-    files: WaifuResponse[];
+    files: WaifuFile[];
+
+    albums: AlbumStub[];
+};
+
+/**
+ * Used payload for creating a new album
+ */
+export type WaifuAlbumCreateBody = {
+    /**
+     * The name of the album
+     */
+    name: string;
+
+    /**
+     * the bucket this album will be created in
+     */
+    bucketToken: string;
+};
+
+export type GenericSuccess = {
+    success: boolean;
+    description: string;
 };
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
