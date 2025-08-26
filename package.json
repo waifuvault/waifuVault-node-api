@@ -1,6 +1,6 @@
 {
   "name": "waifuvault-node-api",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Official Node API for waifuvault.moe",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,17 +26,18 @@
   "author": "Victoria",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
-    "eslint": "^9.19.0",
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3",
-    "prettier": "3.4.2",
+    "lint-staged": "^16.1.5",
+    "prettier": "3.6.2",
     "ts-node": "^10.9.2",
     "tsc-files": "^1.1.4",
-    "tsup": "^8.3.6",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.22.0",
-    "vitest": "^3.0.4"
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0",
+    "vitest": "^3.2.4"
   },
   "homepage": "https://github.com/waifuvault/waifuVault-node-api",
   "repository": {

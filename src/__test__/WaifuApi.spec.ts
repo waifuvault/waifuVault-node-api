@@ -11,6 +11,7 @@ import {
     waifuResponseMock2,
 } from "./mocks/WaifuResponseMock.js";
 import type { ModifyEntryPayload } from "../typeings.js";
+import fs from "node:fs/promises";
 
 describe("test WaifuApi", () => {
     const baseUrl = "https://waifuvault.moe/rest";
@@ -72,6 +73,8 @@ describe("test WaifuApi", () => {
             expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
                 method: "PUT",
                 body,
+                headers: {},
+                signal: undefined,
             });
         });
         it("should upload a file from a URL", async () => {
@@ -84,6 +87,8 @@ describe("test WaifuApi", () => {
             expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
                 method: "PUT",
                 body: getUrlFormData("https:example.com"),
+                headers: {},
+                signal: undefined,
             });
         });
         it("should upload a file with parameters", async () => {
@@ -101,6 +106,8 @@ describe("test WaifuApi", () => {
                 {
                     method: "PUT",
                     body: getUrlFormData("https:example.com", toUpload.password),
+                    headers: {},
+                    signal: undefined,
                 },
             );
         });
@@ -122,8 +129,377 @@ describe("test WaifuApi", () => {
                 {
                     method: "PUT",
                     body: getUrlFormData("https:example.com", toUpload.password),
+                    headers: {},
+                    signal: undefined,
                 },
             );
+        });
+        it("should correctly handle Buffer to Blob conversion", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const testData = "TypeScript 5.9.2 Buffer test data";
+            const buffer = Buffer.from(testData, "utf8");
+
+            const toUpload: FileUpload = {
+                file: buffer,
+                filename: "typescript-test.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+            expect(fetchOptions.method).toBe("PUT");
+        });
+        it("should handle Buffer without filename", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const buffer = Buffer.from("test without filename");
+
+            const toUpload: FileUpload = {
+                file: buffer,
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+        });
+        it("should handle different Buffer encodings", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const buffers = [
+                Buffer.from("Hello World", "utf8"),
+                Buffer.from("Hello World", "ascii"),
+                Buffer.from([72, 101, 108, 108, 111]),
+                Buffer.alloc(100, "a"),
+            ];
+
+            for (const buffer of buffers) {
+                const toUpload: FileUpload = {
+                    file: buffer,
+                    filename: "test.txt",
+                };
+
+                await Waifuvault.uploadFile(toUpload);
+            }
+
+            expect(spy).toHaveBeenCalledTimes(buffers.length);
+        });
+        it("should handle empty Buffer", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const emptyBuffer = Buffer.alloc(0);
+
+            const toUpload: FileUpload = {
+                file: emptyBuffer,
+                filename: "empty.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+        });
+        it("should handle large Buffer", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const largeBuffer = Buffer.alloc(1024 * 1024, "x"); // 1MB buffer
+
+            const toUpload: FileUpload = {
+                file: largeBuffer,
+                filename: "large-file.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+        });
+        it("should handle Buffer with binary data", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const binaryData = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+            const binaryBuffer = Buffer.from(binaryData);
+
+            const toUpload: FileUpload = {
+                file: binaryBuffer,
+                filename: "test.png",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+        });
+        it("should use fallback filename when Buffer filename is undefined", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const buffer = Buffer.from("test data");
+
+            const toUpload: FileUpload = {
+                file: buffer,
+                filename: undefined,
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+        });
+        it("should handle Buffer with special characters", async () => {
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+            const specialChars = "Hello 🌍 TypeScript 5.9.2! 特殊字符 émojis";
+            const buffer = Buffer.from(specialChars, "utf8");
+
+            const toUpload: FileUpload = {
+                file: buffer,
+                filename: "special-chars.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+        });
+        it("should handle string file path correctly", async () => {
+            const mockFileData = Buffer.from("file content from disk");
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileData);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "/path/to/test-file.txt",
+                filename: "custom-name.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("/path/to/test-file.txt");
+            expect(spy).toHaveBeenCalledTimes(1);
+            const [, fetchOptions] = spy.mock.calls[0];
+            expect(fetchOptions.body).toBeInstanceOf(FormData);
+
+            readFileSpy.mockRestore();
+        });
+        it("should extract filename from path when no filename provided", async () => {
+            const mockFileData = Buffer.from("test file content");
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileData);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "/path/to/my-document.pdf",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("/path/to/my-document.pdf");
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            readFileSpy.mockRestore();
+        });
+        it("should handle relative file paths", async () => {
+            const mockFileData = Buffer.from("relative path content");
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileData);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "./files/document.docx",
+                filename: "uploaded-doc.docx",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("./files/document.docx");
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            readFileSpy.mockRestore();
+        });
+        it("should handle file path with special characters", async () => {
+            const mockFileData = Buffer.from("special chars file");
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileData);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "/path with spaces/file-with-特殊字符.txt",
+                filename: "special-file.txt",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("/path with spaces/file-with-特殊字符.txt");
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            readFileSpy.mockRestore();
+        });
+        it("should extract correct filename from complex path", async () => {
+            const mockFileData = Buffer.from("complex path test");
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileData);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "/very/deep/nested/path/final-file.jpg",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("/very/deep/nested/path/final-file.jpg");
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            readFileSpy.mockRestore();
+        });
+        it("should handle file path that reads binary data", async () => {
+            const mockBinaryData = new Uint8Array([0x89, 0x50, 0x4e, 0x47]); // PNG header
+            const mockFileBuffer = Buffer.from(mockBinaryData);
+            const readFileSpy = vi.spyOn(fs, "readFile").mockResolvedValue(mockFileBuffer);
+
+            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+
+            const toUpload: FileUpload = {
+                file: "/images/photo.png",
+                filename: "uploaded-photo.png",
+            };
+
+            await Waifuvault.uploadFile(toUpload);
+
+            expect(readFileSpy).toHaveBeenCalledWith("/images/photo.png");
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            readFileSpy.mockRestore();
+        });
+        describe("upload headers", () => {
+            describe("Ip address", () => {
+                it("should upload file with client IP headers", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
+                        clientIP: "192.168.1.100",
+                    };
+                    const res = await Waifuvault.uploadFile(toUpload);
+                    expect(res).toBe(waifuResponseMock1);
+                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                        method: "PUT",
+                        body,
+                        headers: {
+                            "X-Forwarded-For": "192.168.1.100",
+                            "X-Real-IP": "192.168.1.100",
+                        },
+                        signal: undefined,
+                    });
+                });
+                it("should upload URL with client IP headers", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: UrlUpload = {
+                        url: "https:example.com",
+                        clientIP: "10.0.0.1",
+                    };
+                    const res = await Waifuvault.uploadFile(toUpload);
+                    expect(res).toBe(waifuResponseMock1);
+                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                        method: "PUT",
+                        body: getUrlFormData("https:example.com"),
+                        headers: {
+                            "X-Forwarded-For": "10.0.0.1",
+                            "X-Real-IP": "10.0.0.1",
+                        },
+                        signal: undefined,
+                    });
+                });
+                it("should upload with IPv6 client IP", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
+                        clientIP: "2001:db8::1",
+                    };
+                    await Waifuvault.uploadFile(toUpload);
+                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                        method: "PUT",
+                        body,
+                        headers: {
+                            "X-Forwarded-For": "2001:db8::1",
+                            "X-Real-IP": "2001:db8::1",
+                        },
+                        signal: undefined,
+                    });
+                });
+                it("should upload with client IP and other parameters", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock2) as Response);
+                    const toUpload: UrlUpload = {
+                        url: "https:example.com",
+                        password: "secret",
+                        expires: "1d",
+                        hideFilename: true,
+                        clientIP: "172.16.0.1",
+                    };
+                    await Waifuvault.uploadFile(toUpload);
+                    expect(spy).toHaveBeenCalledWith(`${baseUrl}?expires=1d&hide_filename=true`, {
+                        method: "PUT",
+                        body: getUrlFormData("https:example.com", "secret"),
+                        headers: {
+                            "X-Forwarded-For": "172.16.0.1",
+                            "X-Real-IP": "172.16.0.1",
+                        },
+                        signal: undefined,
+                    });
+                });
+                it("should upload without IP headers when clientIP not provided", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
+                    };
+                    await Waifuvault.uploadFile(toUpload);
+                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                        method: "PUT",
+                        body,
+                        headers: {},
+                        signal: undefined,
+                    });
+                });
+                it("should handle localhost IP address", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
+                        clientIP: "127.0.0.1",
+                    };
+                    await Waifuvault.uploadFile(toUpload);
+                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
+                        method: "PUT",
+                        body,
+                        headers: {
+                            "X-Forwarded-For": "127.0.0.1",
+                            "X-Real-IP": "127.0.0.1",
+                        },
+                        signal: undefined,
+                    });
+                });
+                it("should handle client IP with bucket token", async () => {
+                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
+                        clientIP: "203.0.113.1",
+                        bucketToken: "bucket123",
+                    };
+                    await Waifuvault.uploadFile(toUpload);
+                    expect(spy).toHaveBeenCalledWith(`${baseUrl}/bucket123?`, {
+                        method: "PUT",
+                        body,
+                        headers: {
+                            "X-Forwarded-For": "203.0.113.1",
+                            "X-Real-IP": "203.0.113.1",
+                        },
+                        signal: undefined,
+                    });
+                });
+            });
         });
     });
     describe("fileInfo", () => {

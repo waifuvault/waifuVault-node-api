@@ -24,7 +24,7 @@ export async function uploadFile(
 ): Promise<WaifuFileWithAlbum> {
     async function createBlobFromFile(path: string): Promise<Blob> {
         const file = await fs.readFile(path);
-        return new Blob([file]);
+        return new Blob([new Uint8Array(file)]);
     }
 
     let body: FormData | URLSearchParams;
@@ -34,14 +34,16 @@ export async function uploadFile(
         let blob: Blob;
         let fileName: string | undefined = options.filename;
         if (file instanceof Buffer) {
-            blob = new Blob([file]);
+            blob = new Blob([new Uint8Array(file)]);
         } else {
-            blob = await createBlobFromFile(file!);
+            const filePath = file as string;
+
+            blob = await createBlobFromFile(filePath);
             if (!fileName) {
-                fileName = path.basename(file!);
+                fileName = path.basename(filePath);
             }
         }
-        formData.append("file", blob, fileName);
+        formData.append("file", blob, fileName || "file");
         if (options.password) {
             formData.set("password", options.password);
         }
@@ -53,6 +55,12 @@ export async function uploadFile(
             encodedParams.set("password", options.password);
         }
         body = encodedParams;
+    }
+
+    const headers: Record<string, string> = {};
+    if (options.clientIP) {
+        headers["X-Forwarded-For"] = options.clientIP;
+        headers["X-Real-IP"] = options.clientIP;
     }
 
     const response = await fetch(
@@ -68,6 +76,7 @@ export async function uploadFile(
             signal,
             method: "PUT",
             body,
+            headers,
         },
     );
     await checkError(response);
