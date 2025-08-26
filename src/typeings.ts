@@ -28,6 +28,11 @@ type WaifuvaultPutOpts = {
      * If supplied, this file will be associated to that bucket
      */
     bucketToken?: string;
+
+    /**
+     * If supplied, this client IP will be forwarded to waifuvault
+     */
+    clientIP?: string;
 };
 
 /**
