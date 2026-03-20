@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import Waifuvault, { type FileUpload, type UrlUpload, type WaifuAlbumCreateBody } from "../index.js";
 import {
     genericSuccessDeletedMock,
@@ -27,6 +27,17 @@ describe("test WaifuApi", () => {
             ok: status >= 200 && status <= 299,
         };
     }
+
+    beforeAll(() => {
+        expect.addEqualityTesters([
+            (a: unknown, b: unknown): boolean | undefined => {
+                if (a instanceof File && b instanceof File) {
+                    return a.name === b.name && a.size === b.size && a.type === b.type;
+                }
+                return undefined;
+            },
+        ]);
+    });
 
     beforeEach(() => {
         spy = global.fetch = vi.fn();
