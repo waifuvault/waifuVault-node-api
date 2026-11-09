@@ -1,5 +1,5 @@
 /**
- * options for uplading a file or URL
+ * options for uploading a file
  */
 type WaifuvaultPutOpts = {
     /**
@@ -48,16 +48,6 @@ export type FileUpload = WaifuvaultPutOpts & {
      * The filename of the upload, if you use a buffer, then this should be set
      */
     filename?: string;
-};
-
-/**
- * Upload a file via URL
- */
-export type UrlUpload = WaifuvaultPutOpts & {
-    /**
-     * A url to the file you want uploaded
-     */
-    url: string;
 };
 
 /**
