@@ -4,7 +4,6 @@ import type {
     GetFileInfoFilename,
     GetFileInfoToken,
     ModifyEntryPayload,
-    UrlUpload,
     WaifuFileWithAlbum,
     XOR,
 } from "./typeings";
@@ -13,48 +12,34 @@ import path from "node:path";
 import { checkError, getUrl, url } from "./utils.js";
 
 /**
- * Upload a file to waifuvault given a file or a URL
- * @param {XOR<FileUpload, UrlUpload>} options
+ * Upload a file to waifuvault
+ * @param {FileUpload} options
  * @param {AbortSignal} signal an abort signal to use in the request
  * @returns {Promise<WaifuFile>}
  */
-export async function uploadFile(
-    options: XOR<FileUpload, UrlUpload>,
-    signal?: AbortSignal,
-): Promise<WaifuFileWithAlbum> {
+export async function uploadFile(options: FileUpload, signal?: AbortSignal): Promise<WaifuFileWithAlbum> {
     async function createBlobFromFile(path: string): Promise<Blob> {
         const file = await fs.readFile(path);
         return new Blob([new Uint8Array(file)]);
     }
 
-    let body: FormData | URLSearchParams;
-    if ("file" in options) {
-        const formData = new FormData();
-        const file = options.file;
-        let blob: Blob;
-        let fileName: string | undefined = options.filename;
-        if (file instanceof Buffer) {
-            blob = new Blob([new Uint8Array(file)]);
-        } else {
-            const filePath = file as string;
-
-            blob = await createBlobFromFile(filePath);
-            if (!fileName) {
-                fileName = path.basename(filePath);
-            }
-        }
-        formData.append("file", blob, fileName || "file");
-        if (options.password) {
-            formData.set("password", options.password);
-        }
-        body = formData;
+    const body = new FormData();
+    const file = options.file;
+    let blob: Blob;
+    let fileName: string | undefined = options.filename;
+    if (file instanceof Buffer) {
+        blob = new Blob([new Uint8Array(file)]);
     } else {
-        const encodedParams = new URLSearchParams();
-        encodedParams.set("url", options.url);
-        if (options.password) {
-            encodedParams.set("password", options.password);
+        const filePath = file as string;
+
+        blob = await createBlobFromFile(filePath);
+        if (!fileName) {
+            fileName = path.basename(filePath);
         }
-        body = encodedParams;
+    }
+    body.append("file", blob, fileName || "file");
+    if (options.password) {
+        body.set("password", options.password);
     }
 
     const headers: Record<string, string> = {};

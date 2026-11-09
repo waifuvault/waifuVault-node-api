@@ -12,7 +12,6 @@ export default Waifuvault;
 export {
     WaifuError,
     FileUpload,
-    UrlUpload,
     WaifuFile,
     WaifuAlbum,
     AlbumStub,

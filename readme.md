@@ -47,25 +47,13 @@ To Upload a file, use the `uploadFile` function. This function takes the followi
 
 | Option            | Type                 | Description                                                                       | Required                            | Extra info                                    |
 |-------------------|----------------------|-----------------------------------------------------------------------------------|-------------------------------------|-----------------------------------------------|
-| `file`            | `string` or `Buffer` | The file to upload. can be a string to the file on disk or a Buffer               | true only if `url` is not supplied  | If `url` is supplied, this prop can't be set  |
-| `url`             | `string`             | The URL to a file that exists on the internet                                     | true only if `file` is not supplied | If `file` is supplied, this prop can't be set |
+| `file`            | `string` or `Buffer` | The file to upload. can be a string to the file on disk or a Buffer               | true                                |                                               |
 | `expires`         | `string`             | A string containing a number and a unit (1d = 1day)                               | false                               | Valid units are `m`, `h` and `d`              |
 | `hideFilename`    | `boolean`            | If true, then the uploaded filename won't appear in the URL                       | false                               | Defaults to `false`                           |
 | `password`        | `string`             | If set, then the uploaded file will be encrypted                                  | false                               |                                               |
 | `filename`        | `string`             | Only used if `file` is set and is a `Buffer`, will set the filename of the buffer | false                               |                                               |
 | `oneTimeDownload` | `boolean`            | if supplied, the file will be deleted as soon as it is accessed                   | false                               |                                               |
 | `bucketToken`     | `string`             | if supplied, the file will be associated with the bucket                          | false                               |                                               |
-
-Using a URL:
-
-```ts
-import Waifuvault from "waifuvault-node-api";
-
-const resp = await Waifuvault.uploadFile({
-    url: "https://waifuvault.moe/assets/custom/images/08.png"
-});
-console.log(resp.url); // the file download URL
-```
 
 Using a Buffer:
 
@@ -167,7 +155,7 @@ import Waifuvault from "waifuvault-node-api";
 
 // upload the file
 const resp = await Waifuvault.uploadFile({
-    url: "https://waifuvault.moe/assets/custom/images/08.png",
+    file: "./files/aCoolFile.jpg",
     password: "epic"
 });
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
-import Waifuvault, { type FileUpload, type UrlUpload, type WaifuAlbumCreateBody } from "../index.js";
+import Waifuvault, { type FileUpload, type WaifuAlbumCreateBody } from "../index.js";
 import {
     genericSuccessDeletedMock,
     sharedFileMock1,
@@ -64,13 +64,10 @@ describe("test WaifuApi", () => {
     describe("uploadFile", () => {
         const [body, buffer, filename] = getBufferFormData();
 
-        function getUrlFormData(url: string, password?: string): URLSearchParams {
-            const encodedParams = new URLSearchParams();
-            encodedParams.set("url", url);
-            if (password) {
-                encodedParams.set("password", password);
-            }
-            return encodedParams;
+        function getPasswordFormData(password: string): FormData {
+            const [formData] = getBufferFormData();
+            formData.set("password", password);
+            return formData;
         }
 
         it("should upload a file as Buffer", async () => {
@@ -88,24 +85,11 @@ describe("test WaifuApi", () => {
                 signal: undefined,
             });
         });
-        it("should upload a file from a URL", async () => {
-            spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
-            const toUpload: UrlUpload = {
-                url: "https:example.com",
-            };
-            const res = await Waifuvault.uploadFile(toUpload);
-            expect(res).toBe(waifuResponseMock1);
-            expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
-                method: "PUT",
-                body: getUrlFormData("https:example.com"),
-                headers: {},
-                signal: undefined,
-            });
-        });
         it("should upload a file with parameters", async () => {
             spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock2) as Response);
-            const toUpload: UrlUpload = {
-                url: "https:example.com",
+            const toUpload: FileUpload = {
+                file: buffer,
+                filename: filename,
                 password: "foo",
                 hideFilename: true,
                 expires: "2d",
@@ -116,7 +100,7 @@ describe("test WaifuApi", () => {
                 `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}`,
                 {
                     method: "PUT",
-                    body: getUrlFormData("https:example.com", toUpload.password),
+                    body: getPasswordFormData("foo"),
                     headers: {},
                     signal: undefined,
                 },
@@ -124,8 +108,9 @@ describe("test WaifuApi", () => {
         });
         it("should handle exception", async () => {
             spy.mockResolvedValue(createFetchResponse(400, waifuError) as Response);
-            const toUpload: UrlUpload = {
-                url: "https:example.com",
+            const toUpload: FileUpload = {
+                file: buffer,
+                filename: filename,
                 password: "foo",
                 hideFilename: true,
                 expires: "2d",
@@ -139,7 +124,7 @@ describe("test WaifuApi", () => {
                 `${baseUrl}?expires=${toUpload.expires}&hide_filename=${toUpload.hideFilename}`,
                 {
                     method: "PUT",
-                    body: getUrlFormData("https:example.com", toUpload.password),
+                    body: getPasswordFormData("foo"),
                     headers: {},
                     signal: undefined,
                 },
@@ -403,24 +388,6 @@ describe("test WaifuApi", () => {
                         signal: undefined,
                     });
                 });
-                it("should upload URL with client IP headers", async () => {
-                    spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
-                    const toUpload: UrlUpload = {
-                        url: "https:example.com",
-                        clientIP: "10.0.0.1",
-                    };
-                    const res = await Waifuvault.uploadFile(toUpload);
-                    expect(res).toBe(waifuResponseMock1);
-                    expect(spy).toHaveBeenCalledWith(baseUrlNoQuery, {
-                        method: "PUT",
-                        body: getUrlFormData("https:example.com"),
-                        headers: {
-                            "X-Forwarded-For": "10.0.0.1",
-                            "X-Real-IP": "10.0.0.1",
-                        },
-                        signal: undefined,
-                    });
-                });
                 it("should upload with IPv6 client IP", async () => {
                     spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock1) as Response);
                     const toUpload: FileUpload = {
@@ -441,8 +408,9 @@ describe("test WaifuApi", () => {
                 });
                 it("should upload with client IP and other parameters", async () => {
                     spy.mockResolvedValue(createFetchResponse(200, waifuResponseMock2) as Response);
-                    const toUpload: UrlUpload = {
-                        url: "https:example.com",
+                    const toUpload: FileUpload = {
+                        file: buffer,
+                        filename: filename,
                         password: "secret",
                         expires: "1d",
                         hideFilename: true,
@@ -451,7 +419,7 @@ describe("test WaifuApi", () => {
                     await Waifuvault.uploadFile(toUpload);
                     expect(spy).toHaveBeenCalledWith(`${baseUrl}?expires=1d&hide_filename=true`, {
                         method: "PUT",
-                        body: getUrlFormData("https:example.com", "secret"),
+                        body: getPasswordFormData("secret"),
                         headers: {
                             "X-Forwarded-For": "172.16.0.1",
                             "X-Real-IP": "172.16.0.1",
